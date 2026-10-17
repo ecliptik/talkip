@@ -1,0 +1,5 @@
+build/
+tests/host/test_dns
+tests/host/test_html
+tests/host/test_tcp
+tests/host/test_url

@@ -1,0 +1,36 @@
+# ClassicStack for talkip M7: LToUDP only (inside the talkipm7 namespace), MacIP gateway in NAT mode.
+# Run inside the namespace:  sudo ip netns exec talkipm7 ./classicstack -config server.toml
+[Bridge]
+mode = "pcap"
+device = "tm7-ns"              # MacIP opens a raw link even in NAT mode; EtherTalk stays off (not in Router.ports)
+
+[Router]
+ports = ["LToUdp"]
+
+[LToUdp]
+enabled = true
+interface = "0.0.0.0"          # inside the namespace the group routes to lo
+seed_network = 71
+seed_zone = "Talkip M7"
+
+[TashTalk]
+port = ""
+
+[EtherTalk]
+seed_network_min = 3
+seed_network_max = 5
+seed_zone = "Talkip M7"
+
+[MacIP]
+enabled = true
+mode = "nat"
+zone = "Talkip M7"
+nat_subnet = "192.168.100.0/24"
+nat_gw = "192.168.100.1"
+lease_file = "leases.txt"
+ip_gateway = "10.77.0.1"
+dhcp_relay = false
+nameserver = "1.1.1.1"
+
+[AFP]
+enabled = false
