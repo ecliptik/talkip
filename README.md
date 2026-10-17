@@ -29,6 +29,17 @@ talkip also provides the MacTCP-style API (`_TCPCreate` … `_UDPRelease`) that 
 [Geomys](https://github.com/ecliptik/geomys) (Gopher) and [Flynn](https://github.com/ecliptik/flynn) (Telnet) clients
 use, so they can be built against talkip instead of MacTCP ("Lite" builds for 512 KB).
 
+## Screenshots
+
+A Macintosh 512Ke with System 6.0.8, reaching a netatalk `macipgw` over LocalTalk. These were taken in the
+[Snow](https://github.com/twvd/snow) emulator on LToUDP; the same apps run on the real machine.
+
+| | |
+|---|---|
+| ![TalkIP Web showing Wikipedia's Macintosh 512K article](docs/screenshots/web-wikipedia-https.png)<br>**TalkIP Web:** Wikipedia over HTTPS through macproxy, 25 KB in 14 s | ![TalkIP Web showing info.cern.ch](docs/screenshots/web-info-cern.png)<br>**TalkIP Web:** the first website, plain HTTP/1.0 |
+| ![Geomys Lite showing gopher.floodgap.com](docs/screenshots/geomys-lite.png)<br>**Geomys Lite:** Gopher on talkip | ![Flynn Lite in a telnet session to telehack.com](docs/screenshots/flynn-lite.png)<br>**Flynn Lite:** Telnet on talkip |
+| ![TalkIP Ping pinging floodgap.com](docs/screenshots/ping.png)<br>**TalkIP Ping:** name lookup, then ICMP echo | ![IPP Probe making MacTCP calls through the TalkIP Driver](docs/screenshots/talkip-driver-probe.png)<br>**TalkIP Driver:** a MacTCP client (IPP Probe) using `.ipp`, sync and async |
+
 ## Status
 
 On a real Macintosh 512Ke through netatalk's macipgw:
