@@ -24,6 +24,7 @@ interface.
 | TalkIP Fetch | Gopher/TCP fetch with timing, a test tool |
 | TalkIP Web | An extremely basic HTTP/1.0 browser: text, headings, links. HTTPS sites through a proxy such as [macproxy](https://github.com/rdmark/macproxy_classic) |
 | TalkIP Driver | An INIT that installs a MacTCP-compatible `.ipp` driver: unmodified MacTCP applications use talkip |
+| AppleTalk On | A 138-byte INIT that turns AppleTalk on at every startup, for Macs whose PRAM battery is dead or missing |
 
 talkip also provides the MacTCP-style API (`_TCPCreate` … `_UDPRelease`) that the
 [Geomys](https://github.com/ecliptik/geomys) (Gopher) and [Flynn](https://github.com/ecliptik/flynn) (Telnet) clients

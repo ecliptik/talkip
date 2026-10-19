@@ -59,6 +59,20 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     add_custom_target(TalkIPDriver_INIT ALL DEPENDS TalkIPDriver.bin)
 endif()
 
+# AppleTalk On: an INIT that turns AppleTalk on at every startup, for Macs without a PRAM battery (flat code, no globals)
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    add_executable(AppleTalkOn src/atalkon/atalkon.c)
+    set_target_properties(AppleTalkOn PROPERTIES OUTPUT_NAME AppleTalkOn.flt
+        LINK_FLAGS "-Wl,--mac-flat -Wl,-gc-sections")
+    add_custom_command(
+        OUTPUT AppleTalkOn.bin AppleTalkOn.dsk
+        COMMAND ${REZ} -I${REZ_INCLUDE_PATH}
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/atalkon.r
+                -o AppleTalkOn.bin --cc AppleTalkOn.dsk -t INIT -c tkip
+        DEPENDS AppleTalkOn resources/atalkon.r)
+    add_custom_target(AppleTalkOn_INIT ALL DEPENDS AppleTalkOn.bin)
+endif()
+
 # M8: a plain MacTCP client (no talkip code) to check the .ipp driver
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     add_application(IPPProbe tests/m8/ipp_probe.c)
