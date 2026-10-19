@@ -27,7 +27,13 @@ interface.
 
 talkip also provides the MacTCP-style API (`_TCPCreate` … `_UDPRelease`) that the
 [Geomys](https://github.com/ecliptik/geomys) (Gopher) and [Flynn](https://github.com/ecliptik/flynn) (Telnet) clients
-use, so they can be built against talkip instead of MacTCP ("Lite" builds for 512 KB).
+use, so they can be built against talkip instead of MacTCP ("Lite" builds for 512 KB). With talkip cloned next to
+them:
+
+```sh
+./scripts/build.sh --preset minimal --talkip            # in geomys/
+./scripts/build.sh --preset minimal --finger --talkip   # in flynn/
+```
 
 ## Screenshots
 
