@@ -685,6 +685,34 @@ OSErr shim_udp_read_try(UDPiopb *pb)
     pb->csParam.receive.remotePort = u->from_port;
     return noErr;
 }
+
+/*
+ * An application's memory, [lo, hi), is about to be reused (it quit, or launched another one). Its streams go:
+ * those whose receive buffer or pending ActiveOpen is in it. TCP connections are reset, UDP ports unbound. Nothing
+ * is completed, since the completion routines are in that memory too.
+ */
+void shim_forget_app(Ptr lo, Ptr hi)
+{
+    int i;
+
+    for (i = 0; i < TCP_MAX_CONNS; i++) {
+        ShimStream *ss = &streams[i];
+        if (ss->used && ((ss->rcv_buf >= lo && ss->rcv_buf < hi)
+                         || ((Ptr)ss->open_pb >= lo && (Ptr)ss->open_pb < hi))) {
+            ss->open_pb = NULL;
+            if (ss->conn >= 0)
+                tcp_release(ss->conn);  /* aborts if still open */
+            ss->used = false;
+        }
+    }
+    for (i = 0; i < UDP_STREAMS; i++) {
+        ShimUDP *u = &udps[i];
+        if (u->used && u->buf >= lo && u->buf < hi) {
+            udp_unbind(u->port);
+            u->used = false;
+        }
+    }
+}
 #endif
 
 unsigned long ip2long(char *ip)

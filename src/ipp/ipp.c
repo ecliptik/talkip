@@ -51,6 +51,7 @@ OSErr shim_tcp_close_try(TCPiopb *, Boolean);
 OSErr shim_udp_read_try(UDPiopb *);
 OSErr shim_tcp_passive_start(TCPiopb *);
 OSErr shim_tcp_passive_try(TCPiopb *);
+void shim_forget_app(Ptr, Ptr);
 extern char _stext[], _edata[], _sbss[], _ebss[];  /* the linker's section bounds */
 
 #define IPP_FLAGS       0x6C00      /* dNeedLock | dNeedTime | dStatEnable | dCtlEnable */
@@ -314,6 +315,48 @@ static void end_pending(StreamPtr s, Boolean udp)
     }
 }
 
+/*
+ * InitApplZone (a launch, or the application quitting) calls the routine in IAZNotify: the application's memory,
+ * from ApplZone up to BufPtr, is about to be reused. Calls it left pending, and its streams, are dropped without
+ * completion, since their parameter blocks and completion routines are in that memory. Without this, a call still
+ * pending at a launch is completed later into the next application's heap: on System 6 without MultiFinder,
+ * Retro68's LaunchAPPL server sublaunches with a TCPRcv outstanding, and when the connection ended the driver jumped
+ * through a stale ioCompletion ("coprocessor not installed", found in Snow 2026-10-19).
+ */
+#define LM_APPL_ZONE    (*(Ptr *)0x2AA)
+#define LM_BUF_PTR      (*(Ptr *)0x10C)
+#define LM_IAZ_NOTIFY   (*(ProcPtr *)0x33C)
+
+ProcPtr ipp_old_iaz;
+void ipp_iaz_patch(void);
+__asm__(
+    "   .text\n"
+    "   .even\n"
+    "   .globl  ipp_iaz_patch\n"
+    "ipp_iaz_patch:\n"
+    "   movem.l %d0-%d2/%a0-%a1,-(%sp)\n"
+    "   jsr     ipp_forget_app\n"
+    "   movem.l (%sp)+,%d0-%d2/%a0-%a1\n"
+    "   tst.l   ipp_old_iaz\n"
+    "   beq.s   1f\n"
+    "   move.l  ipp_old_iaz,-(%sp)\n"      /* chain to whoever was there before */
+    "1: rts\n"
+);
+
+void ipp_forget_app(void)
+{
+    Ptr lo = LM_APPL_ZONE, hi = LM_BUF_PTR;
+    int i;
+
+    for (i = 0; i < MAX_PENDING; i++) {
+        if ((Ptr)pending[i].pb >= lo && (Ptr)pending[i].pb < hi)
+            pending[i].pb = NULL;
+        if ((Ptr)swapped[i].pb >= lo && (Ptr)swapped[i].pb < hi)
+            swapped[i].pb = NULL;
+    }
+    shim_forget_app(lo, hi);
+}
+
 /* Only this call is on the driver's queue: it can be taken off and finished by the driver itself */
 static Boolean alone(ParmBlkPtr pb, DCtlPtr dce)
 {
@@ -537,6 +580,8 @@ static void ipp_install(void)
         SetOSTrapAddress((UniversalProcPtr)ipp_gestalt_patch, 0xA1AD);
         gestalt_err = 2;                /* patched */
     }
+    ipp_old_iaz = LM_IAZ_NOTIFY;
+    LM_IAZ_NOTIFY = (ProcPtr)ipp_iaz_patch;
 
     /* Keep this code (the driver) in the system heap after the INIT's file closes */
     self = Get1Resource('INIT', 128);
