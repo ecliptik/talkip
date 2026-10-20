@@ -47,6 +47,11 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
         src/ipp/ipp.c
         src/ddp.c src/macip.c src/ip.c src/udp.c src/tcp.c src/tcpshim.c src/fmt.c)
     target_compile_definitions(TalkIPDriver PRIVATE TALKIP_RESIDENT)
+    option(IPP_TRAPCATCH "TalkIP Driver: draw the PC and stack on a crash (src/ipp/trapcatch.c)" ON)
+    if(IPP_TRAPCATCH)
+        target_sources(TalkIPDriver PRIVATE src/ipp/trapcatch.c)
+        target_compile_definitions(TalkIPDriver PRIVATE IPP_TRAPCATCH)
+    endif()
     target_include_directories(TalkIPDriver PRIVATE include src)
     set_target_properties(TalkIPDriver PROPERTIES OUTPUT_NAME TalkIPDriver.flt
         LINK_FLAGS "-Wl,--mac-flat -Wl,-gc-sections")

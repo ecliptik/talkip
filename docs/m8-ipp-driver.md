@@ -138,6 +138,32 @@ without the driver.)
 - Afterwards the driver went back to "Optional (512K)" (not loaded at boot), and the Mac was shut down and powered
   off.
 
+## LaunchAPPL over TCP, and the crash readout (2026-10-19)
+
+With the gateway firewall allowing the build host to port 1984, Retro68's LaunchAPPL pushes and runs an
+application on the real 512Ke over MacIP (`LaunchAPPL -e tcp --tcp-address <Mac's MacIP address>`). On System 6
+without MultiFinder this is push-and-run only: the server sublaunches the application, and when it quits the server
+is launched again from scratch and forgets the connection, so the build host never gets the result back. Results
+come back over a serial connection, or as a file the application writes (for example into a shared folder).
+
+- **The relaunch bomb:** the server sublaunches with a TCPRcv still pending. With the 10-16 driver, the driver
+  later completed that call into the next application's heap and jumped through a stale ioCompletion
+  ("coprocessor not installed", found in Snow). Fixed (dab825d): the driver chains onto IAZNotify, which
+  InitApplZone calls at every launch and quit, and drops the calls and streams that live in the application's
+  memory (ApplZone up to BufPtr).
+- **An unexplained bomb:** that build alone bombed twice on the real Mac with "illegal instruction" when the
+  server switched to MacTCP, and never in Snow (not even with RAM filled at power-on, which the ROM overwrites
+  anyway). With the crash readout below built in, the same step passed twice on the real Mac, so no PC was
+  captured. Cause unknown: something that depends on code layout or on timing (the SCC, MacIP traffic).
+- **The crash readout** (src/ipp/trapcatch.c, on by default): the INIT also takes the bus error, address error,
+  illegal instruction and Line-F vectors, draws the vector, PC, PC minus the driver's base, registers and stack in
+  hex on the bottom 64 rows of the screen, then goes on to the system's handler. If the driver ever bombs, a photo
+  of the screen gives the PC; `m68k-apple-macos-nm TalkIPDriver.flt.gdb` maps PC minus base to a function. It costs
+  1.3 KB.
+- **Verified on the real 512Ke** with the readout build: LaunchAPPL server → MacTCP, a push of a test application
+  that ran and wrote its file, the server back with no bomb; stock Geomys (MacTCP build) loading floodgap, quitting,
+  relaunching and loading again.
+
 ## Other stock MacTCP apps (Snow)
 
 - **Shiori Classic, full build** (shiori 915f4ff, SIZE 1024K/640K; System 6 without MultiFinder ignores SIZE):
@@ -166,7 +192,7 @@ without the driver.)
 1. ~~Measure on the real 512Ke~~: done (above).
 2. ~~Real asynchronous calls~~: done.
 3. ~~Trim 2-4 KB~~: done, 3.3 KB (above).
-4. LaunchAPPL remote launches need a network path from the build host to the MacIP subnet (a gateway firewall rule
-   for the build host to port 1984).
+4. ~~LaunchAPPL remote launches need a network path from the build host to the MacIP subnet~~: done (above),
+   push-and-run only on System 6.
 5. More stock apps: a newer NCSA Telnet (2.5/2.6), Fetch-style tools; MacTCP's DNR ('dnrp') for apps that resolve
    names through it.

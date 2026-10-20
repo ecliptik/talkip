@@ -52,6 +52,9 @@ OSErr shim_udp_read_try(UDPiopb *);
 OSErr shim_tcp_passive_start(TCPiopb *);
 OSErr shim_tcp_passive_try(TCPiopb *);
 void shim_forget_app(Ptr, Ptr);
+#ifdef IPP_TRAPCATCH
+void ipp_trapcatch_install(void);  /* trapcatch.c: draws the PC and stack on a crash */
+#endif
 extern char _stext[], _edata[], _sbss[], _ebss[];  /* the linker's section bounds */
 
 #define IPP_FLAGS       0x6C00      /* dNeedLock | dNeedTime | dStatEnable | dCtlEnable */
@@ -582,6 +585,9 @@ static void ipp_install(void)
     }
     ipp_old_iaz = LM_IAZ_NOTIFY;
     LM_IAZ_NOTIFY = (ProcPtr)ipp_iaz_patch;
+#ifdef IPP_TRAPCATCH
+    ipp_trapcatch_install();
+#endif
 
     /* Keep this code (the driver) in the system heap after the INIT's file closes */
     self = Get1Resource('INIT', 128);
