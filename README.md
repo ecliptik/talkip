@@ -26,6 +26,13 @@ interface.
 | TalkIP Driver | An INIT that installs a MacTCP-compatible `.ipp` driver: unmodified MacTCP applications use talkip |
 | AppleTalk On | A 138-byte INIT that turns AppleTalk on at every startup, for Macs whose PRAM battery is dead or missing |
 
+## Download
+
+From the [releases](https://github.com/ecliptik/talkip/releases): `talkip-<version>.dsk` is an 800K disk image (for a
+Floppy Emu, BlueSCSI or an emulator), and `talkip-<version>.sit` is a StuffIt 1.5 archive of the same files: the five
+tools, the TalkIP Driver and AppleTalk On INITs, and a Read Me. The tools run as they are. To use an INIT, drag it into
+the System Folder and restart.
+
 talkip also provides the MacTCP-style API (`_TCPCreate` … `_UDPRelease`) that the
 [Geomys](https://github.com/ecliptik/geomys) (Gopher) and [Flynn](https://github.com/ecliptik/flynn) (Telnet) clients
 use, so they can be built against talkip instead of MacTCP ("Lite" builds for 512 KB). With talkip cloned next to
@@ -69,7 +76,8 @@ Cross-compiled with [Retro68](https://github.com/autc04/Retro68) (68000, `-m6800
 TOOLCHAIN=/path/to/Retro68-build/toolchain/m68k-apple-macos/cmake/retro68.toolchain.cmake ./scripts/build.sh
 ```
 
-The output in `build/` is `.bin` (MacBinary), `.dsk` and `.APPL` files. Host-side tests for the TCP, DNS, HTML and
+The output in `build/` is `.bin` (MacBinary), `.dsk` and `.APPL` files; `./scripts/package.sh` then makes the release
+disk image and archive, and `./scripts/release.sh vX.Y.Z` publishes them. Host-side tests for the TCP, DNS, HTML and
 URL code: `make -C tests/host`. Testing was done in [Snow](https://github.com/twvd/snow) (an emulated 512Ke on
 LToUDP), then on the real Mac.
 
